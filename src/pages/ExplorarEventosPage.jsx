@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Calendar, MapPin, Tag, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Calendar, MapPin, Tag, Users } from 'lucide-react';
 
 const TAGS = ['Música', 'Tecnología', 'Arte', 'Deportes', 'Cine', 'Educación'];
 
@@ -71,6 +72,7 @@ const PAGE_SIZE = 3;
 export default function ExplorarEventosPage() {
   const [filtros, setFiltros] = useState({ nombre: '', tag: '', fecha: '' });
   const [pagina, setPagina] = useState(1);
+  const navigate = useNavigate();
 
   // Filtrado
   const eventosFiltrados = eventosSimulados.filter(ev => {
@@ -87,6 +89,10 @@ export default function ExplorarEventosPage() {
   const handleFiltroChange = (e) => {
     setFiltros({ ...filtros, [e.target.name]: e.target.value });
     setPagina(1);
+  };
+
+  const handleCardClick = (id) => {
+    navigate(`/evento/${id}`);
   };
 
   return (
@@ -140,7 +146,11 @@ export default function ExplorarEventosPage() {
           <div className="col-span-full text-center text-gray-500 py-12">No se encontraron eventos.</div>
         )}
         {eventosPagina.map(ev => (
-          <div key={ev.id} className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300">
+          <div
+            key={ev.id}
+            className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+            onClick={() => handleCardClick(ev.id)}
+          >
             <div className="h-32 w-full overflow-hidden">
               <img src={ev.imagen} alt={ev.nombre} className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
             </div>
@@ -162,7 +172,7 @@ export default function ExplorarEventosPage() {
               </div>
               <div className="flex items-center justify-between mt-2">
                 <span className="font-bold text-primary text-base">{ev.precio === 0 ? 'Gratis' : `$${ev.precio}`}</span>
-                <button className="btn-primary flex items-center gap-1 text-sm px-4 py-2">
+                <button className="btn-primary flex items-center gap-1 text-sm px-4 py-2" onClick={e => { e.stopPropagation(); }}>
                   <Users className="w-4 h-4" /> Unirse
                 </button>
               </div>
@@ -173,13 +183,6 @@ export default function ExplorarEventosPage() {
       {/* Paginación */}
       {totalPaginas > 1 && (
         <div className="flex justify-center items-center gap-2">
-          <button
-            className="btn-secondary px-3 py-1"
-            disabled={pagina === 1}
-            onClick={() => setPagina(pagina - 1)}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
           {Array.from({ length: totalPaginas }, (_, i) => (
             <button
               key={i}
@@ -189,13 +192,6 @@ export default function ExplorarEventosPage() {
               {i + 1}
             </button>
           ))}
-          <button
-            className="btn-secondary px-3 py-1"
-            disabled={pagina === totalPaginas}
-            onClick={() => setPagina(pagina + 1)}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
         </div>
       )}
     </div>

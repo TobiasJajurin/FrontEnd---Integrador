@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Plus, Users, Globe, Calendar, MapPin, LogOut, UserCheck, UserPlus } from 'lucide-react';
+import { Pencil, Trash2, Plus, Users, Globe, Calendar, MapPin, LogOut, UserCheck, UserPlus, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import EventoModal from '../components/EventoModal';
 
 const eventosCreadosInicial = [
   {
@@ -8,6 +9,9 @@ const eventosCreadosInicial = [
     nombre: "Mi Recital",
     fecha: "2024-07-10",
     lugar: "Teatro Gran Rex",
+    precio: 100,
+    tags: ["Música"],
+    imagen: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=220&fit=crop",
     descripcion: "Un show inolvidable",
   },
   {
@@ -15,6 +19,9 @@ const eventosCreadosInicial = [
     nombre: "Charla de Tecnología",
     fecha: "2024-08-01",
     lugar: "Auditorio ORT",
+    precio: 0,
+    tags: ["Tecnología"],
+    imagen: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=220&fit=crop",
     descripcion: "Charlas sobre IA y futuro",
   },
 ];
@@ -50,6 +57,8 @@ export default function DashboardPage() {
   const [eventosCreados, setEventosCreados] = useState(eventosCreadosInicial);
   const [eventosUnidos, setEventosUnidos] = useState(eventosUnidosInicial);
   const [eventosMundiales, setEventosMundiales] = useState(eventosMundialesInicial);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editEvento, setEditEvento] = useState(null);
   const navigate = useNavigate();
 
   const handleEliminar = (id) => {
@@ -57,7 +66,9 @@ export default function DashboardPage() {
   };
 
   const handleEditar = (id) => {
-    alert('Funcionalidad de edición simulada para el evento ID: ' + id);
+    const evento = eventosCreados.find(ev => ev.id === id);
+    setEditEvento(evento);
+    setModalOpen(true);
   };
 
   const handleUnirse = (id) => {
@@ -66,16 +77,41 @@ export default function DashboardPage() {
     setEventosMundiales(eventosMundiales.filter(ev => ev.id !== id));
   };
 
+  const handleCancelarUnion = (id) => {
+    setEventosUnidos(eventosUnidos.filter(ev => ev.id !== id));
+  };
+
   const handleNuevoEvento = () => {
-    alert('Funcionalidad de creación de evento simulada');
+    setEditEvento(null);
+    setModalOpen(true);
   };
 
   const handleLogout = () => {
     navigate('/login');
   };
 
+  const handleDetalle = (id) => {
+    navigate(`/evento/${id}`);
+  };
+
+  const handleSaveEvento = (evento) => {
+    if (editEvento) {
+      // Editar
+      setEventosCreados(eventosCreados.map(ev => ev.id === editEvento.id ? { ...evento, id: editEvento.id } : ev));
+    } else {
+      // Crear
+      setEventosCreados([
+        ...eventosCreados,
+        { ...evento, id: Date.now() }
+      ]);
+    }
+    setModalOpen(false);
+    setEditEvento(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-10 px-4">
+      <EventoModal open={modalOpen} onClose={() => { setModalOpen(false); setEditEvento(null); }} onSave={handleSaveEvento} initialData={editEvento} />
       <header className="flex justify-between items-center mb-10 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold text-primary">Bienvenido, Usuario 👋</h1>
         <button className="btn-secondary flex items-center gap-2" onClick={handleLogout}>
@@ -100,7 +136,7 @@ export default function DashboardPage() {
                 <div className="text-gray-500 text-center">No tienes eventos creados.</div>
               )}
               {eventosCreados.map(ev => (
-                <div key={ev.id} className="flex justify-between items-center bg-blue-50/60 rounded-xl p-4 border border-blue-100">
+                <div key={ev.id} className="flex justify-between items-center bg-blue-50/60 rounded-xl p-4 border border-blue-100 cursor-pointer hover:bg-blue-100/60 transition" onClick={() => handleDetalle(ev.id)}>
                   <div>
                     <h3 className="text-lg font-semibold text-primary">{ev.nombre}</h3>
                     <div className="text-gray-500 flex items-center gap-2 text-sm">
@@ -109,7 +145,7 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-gray-600 text-sm mt-1">{ev.descripcion}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                     <button className="btn-secondary flex items-center gap-1" onClick={() => handleEditar(ev.id)}>
                       <Pencil className="w-4 h-4" /> Editar
                     </button>
@@ -131,7 +167,7 @@ export default function DashboardPage() {
                 <div className="text-gray-500 text-center">No te has unido a ningún evento.</div>
               )}
               {eventosUnidos.map(ev => (
-                <div key={ev.id} className="flex justify-between items-center bg-green-50/60 rounded-xl p-4 border border-green-100">
+                <div key={ev.id} className="flex justify-between items-center bg-green-50/60 rounded-xl p-4 border border-green-100 cursor-pointer hover:bg-green-100/60 transition" onClick={() => handleDetalle(ev.id)}>
                   <div>
                     <h3 className="text-lg font-semibold text-green-700">{ev.nombre}</h3>
                     <div className="text-gray-500 flex items-center gap-2 text-sm">
@@ -140,7 +176,9 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-gray-600 text-sm mt-1">{ev.descripcion}</p>
                   </div>
-                  <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">Unido</span>
+                  <button className="btn-secondary flex items-center gap-2 text-red-600 border-red-400 hover:bg-red-50" onClick={e => { e.stopPropagation(); handleCancelarUnion(ev.id); }}>
+                    <XCircle className="w-4 h-4" /> Cancelar inscripción
+                  </button>
                 </div>
               ))}
             </div>

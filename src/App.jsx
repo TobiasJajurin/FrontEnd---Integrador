@@ -6,6 +6,7 @@ import SignUpPage from './pages/SignUpPage'
 import DashboardPage from './pages/DashboardPage'
 import Navbar from './components/Navbar'
 import ExplorarEventosPage from './pages/ExplorarEventosPage'
+import DetalleEventoPage from './pages/DetalleEventoPage'
 
 function App() {
   const location = useLocation();
@@ -35,7 +36,7 @@ function App() {
   }, [])
 
   // Mostrar Navbar solo en páginas internas
-  const showNavbar = ['/dashboard', '/explorar'].includes(location.pathname);
+  const showNavbar = ['/dashboard', '/explorar', location.pathname.startsWith('/evento/') ? location.pathname : ''].includes(location.pathname);
   const handleLogout = () => {
     navigate('/login');
   };
@@ -50,6 +51,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/explorar" element={<ExplorarEventosPage />} />
+          <Route path="/evento/:id" element={<DetalleEventoPage />} />
         </Routes>
       </div>
     </div>
